@@ -1,0 +1,200 @@
+https://segmentfault.com/a/1190000015804205
+cookie、session、sessionStorage、localStorage 之间的区别及应用场景
+￼
+cookie
+* 由服务端生成，保存在客户端（由于前后端有交互，所以安全性差，且浪费带宽）
+* 存储大小有限（最大 4kb )
+* 存储内容只接受 String 类型
+* 保存位置：
+    * 若未设置过期时间，则保存在 内存 中，浏览器关闭后销毁
+    * 若设置了过期时间，则保存在 系统硬盘 中，直到过期时间结束后才消失（即使关闭浏览器）
+* 数据操作不方便，原生接口不友好，需要自己封装
+* 应用场景
+    * 判断用户是否登陆过网站，以便下次登录时能够实现自动登录（或者记住密码）
+    * 保存登录时间、浏览次数等信息
+
+
+
+session
+* 是后端关心的内容，依赖于 cookie（sessionID 保存在cookie中）
+* 保存在服务端
+* 存储大小无限制
+* 支持任何类型的存储内容
+* 保存位置：服务器内存，若访问较多会影响服务器性能
+
+
+webStorage
+webStorage 是 html5 提供的本地存储方案，包括两种方式：sessionStorage 和 localStorage。相比 cookie 这种传统的客户端存储方式，webStorage 有许多优点：
+* 保存在客户端，不与服务器通信，因此比 cookie 更安全、速度更快
+* 存储空间有限，但比 cookie 大（5MB)
+* 仅支持 String 类型的存储内容（和 cookie 一样）
+* html5 提供了原生接口，数据操作比 cookie 方便
+    * setItem(key, value) 保存数据，以键值对的方式储存信息。
+    * getItem(key) 获取数据，将键值传入，即可获取到对应的value值。
+    * removeItem(key) 删除单个数据，根据键值移除对应的信息。
+    * clear() 删除所有的数据
+    * key(index) 获取某个索引的key
+
+localStorage
+* 持久化的本地存储，浏览器关闭重新打开数据依然存在（除非手动删除数据）。
+* 应用场景：长期登录、判断用户是否已登录，适合长期保存在本地的数据。
+
+
+sessionStorage
+* 浏览器窗口关闭后数据被销毁。
+* 应用场景：敏感账号一次性登录。
+
+总结
+综上所述，我们可以知道，
+cookie 和 webStorage（ localStorage、sessionStorage ）是前端工程师关心的内容，
+session 是后端关心的内容。 cookie 存储量小、安全性差、数据操作接口不友好，
+而 webStorage 存储量较大、安全性较高、数据接口友好。若要持久的存储方式，推荐使用 localStorage 若要一次性会话的存储，推荐使用 sessionStorage
+
+
+
+
+
+
+localStorage、sessionStorage、Cookie不共同点:
+存储大小的不同：
+localStorage的大小一般为5M
+sessionStorage的大小一般为5M
+cookies的大小一般为4K
+
+有效期不同：
+localStorage的有效期为永久有效，除非你进行手动删除。
+sessionStorage在当前会话下有效，关闭页面或者浏览器时会被清空。
+cookies在设置的有效之前有效，当超过有效期便会失效。
+
+与服务器端的通信
+localStorage不参与服务器端的通信。
+sessionStorage不参与服务器端的通信。
+cookies参与服务器端通信，每次都会携带http的头信息中。（如果使用cookie保存过多数据会带来性能问题）
+
+localStorage和sessionStorage的作用域的区别详解
+不同浏览器无法共享localStorage或sessionStorage中的信息。
+相同浏览器的不同页面间可以共享相同的 localStorage（页面属于相同域名和端口），但是不同页面或标签页间无法共享sessionStorage的信息。
+————————————————
+版权声明：本文为CSDN博主「静水流深之鑫」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/qq_26941173/article/details/88369543
+
+
+https://blog.csdn.net/qq_35585701/article/details/81393361
+这次主要来说说cookie和session的区别
+
+cookie
+cookie可以在前后端进行用户的身份认证，标记用户。说到为什么要使用cookie，那得说到http。
+话说，http是一种无状态的协议，它的无状态可以用翻脸不认人（浏览器）来表示了；以至于服务器不会记得前一秒是哪个客户端向它发出了请求，这就会导致一种情况出现：
+小熊登录了淘宝；跳转一下页面，需要再登录；加入购物车，需要再登录；付款需要在登陆……想想真是太糟糕，用户体验极差，不能好好玩耍了。
+
+在服务端的解决办法是：用session去管理cookie。
+
+session
+session是由cookie进行标记的。当需要记住用户时，比如前面说的登录，在服务端会设置一个响应头Set-Cookie，返回给客户端，例如：Set-Cookie:SESSIONID=12345678；
+客户端接收到这个响应后，此后发送的每一个请求浏览器都会自动带上Cookie请求头，对应内容是Cookie:SESSIONID=12345678。
+在服务端内存中存有session，将客户端发送的请求中的cookie值与内存中的session进行对比，就可以识别这个客户端了，也就能避免上图中那种尴尬的情况。
+但是这又会引发新的问题。
+如果用session在服务端进行存储，会出现的情况是，在一个处理淘宝业务的服务器集群中，不同的服务器被分配处理的业务不同，他们都处于淘宝这个大域名下，每台服务器的内存中都保留着一份同样的session，
+这就涉及到服务器之间session的复制。如若有100台服务器，每台服务器都有着同样的session，那么session所占用的内存之多可以想象。
+服务器既要处理业务，还得维护session的同步，如此一来，服务器无法通过增加业务的方式进行扩张，不易进行横向扩展。
+
+解决办法：将有状态的服务转化为无状态的服务
+（1）共享session
+将session提取出来，集中存放（有点像开辟了一个session数据库的赶脚。。）
+
+（2）token
+服务是不需要进行存储，服务可以通过解析token里面的信息来判断是否登陆。token 里面是可以携带cookie解析出来的信息的。这种情况下，去掉了服务器存储的负担，只需要每次在服务端对token增加一个校验就可以了。
+
+在学习session这块的同时，注意到，在高并发情况下，集群中服务器的分布是可以加以设计和优化的。
+就拿双十一的淘宝，同时那么多人访问，仍旧坚挺着，这是为什么？当业务量巨大的时候，同一个域名底下可以有一堆服务器处理大量复杂的业务，防止网站崩溃；这个时候就需要进行负载均衡的设计了
+不学不知道，一学吓一跳。。。快快去看看负载均衡是个啥大人物，后续再总结咯。
+————————————————
+版权声明：本文为CSDN博主「小bearBear」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/qq_35585701/article/details/81393361
+
+
+
+前端面试题（四）：cookie， session 和 localstorage 的区别
+原创乌鲁托拉曼 发布于2018-08-09 18:24:47 阅读数 2602  收藏
+展开
+一、cookie详解
+（1）简介
+
+因为HTTP协议是无状态的，即服务器不知道用户上一次做了什么，这严重阻碍了交互式Web应用程序的实现。
+在典型的网上购物场景中，用户浏览了几个页面，买了一盒饼干和两饮料。最后结帐时，由于HTTP的无状态性，不通过额外的手段，服务器并不知道用户到底买了什么。
+为了做到这点，就需要使用到Cookie了。服务器可以设置或读取Cookies中包含信息，借此维护用户跟服务器会话中的状态。
+
+Cookie（复数形态：Cookies），是指某些网站为了辨别用户身份、进行session跟踪而储存在用户本地终端上的数据（通常经过加密）。
+
+Cookie是由服务端生成的，发送给客户端（通常是浏览器）的。Cookie总是保存在客户端中，按在客户端中的存储位置，可分为会话Cookie和持久Cookie：
+
+内存Cookie由浏览器维护，保存在内存中，浏览器关闭后就消失了，其存在时间是短暂的。
+硬盘Cookie保存在硬盘里，有一个过期时间，除非用户手工清理或到了过期时间，硬盘Cookie不会被删除，其存在时间是长期的。所以，按存在时间，可分为非持久Cookie和持久Cookie。
+（2）作用
+
+Cookie的根本作用就是在客户端存储用户访问网站的一些信息👀👀（不单单是token之类的用户信息，cookie是工具，跟token没有本质联系）。典型的应用有：
+
+记住密码，下次自动登录。
+购物车功能。
+记录用户浏览数据，进行商品（广告）推荐。
+（3）缺陷
+①Cookie会被附加在每个HTTP请求中，所以无形中增加了流量。
+②由于在HTTP请求中的Cookie是明文传递的，所以安全性成问题。（除非用HTTPS）
+③Cookie的大小限制在4KB左右。对于复杂的存储需求来说是不够用的。
+
+二、Session详解
+（1）简介
+Session代表服务器与浏览器的一次会话过程，这个过程是连续的，也可以时断时续的。Session是一种服务器端的机制，Session 对象用来存储特定用户会话所需的信息。
+Session由服务端生成，保存在服务器的内存、缓存、硬盘或数据库中。
+
+（2）工作原理
+当用户访问到一个服务器，如果服务器启用Session，服务器就要为该用户创建一个SESSION，在创建这个SESSION的时候，服务器首先检查这个用户发来的请求里是否包含了一个SESSION ID，
+如果包含了一个SESSION ID则说明之前该用户已经登陆过并为此用户创建过SESSION，那服务器就按照这个SESSION ID把这个SESSION在服务器的内存中查找出来（如果查找不到，就有可能为他新创建一个），如果客户端请求里不包含有SESSION ID，则为该客户端创建一个SESSION并生成一个与此SESSION相关的SESSION ID。这个SESSION ID是唯一的、不重复的、不容易找到规律的字符串，这个SESSION ID将被在本次响应中返回到客户端保存，而保存这个SESSION ID的正是COOKIE，这样在交互过程中浏览器可以自动的按照规则把这个标识发送给服务器。
+
+（3）作用
+Session的根本作用就是在服务端存储用户和服务器会话的一些信息。典型的应用有：
+
+判断用户是否登录。
+购物车功能。
+
+三、Cookie和Session的区别
+
+1、存放位置不同：
+Cookie保存在客户端，Session保存在服务端。
+
+2 、存取方式的不同：
+Cookie中保存的是字符串，Session保存的是对象
+
+3、安全性（隐私策略）的不同 ：
+Cookie存储在浏览器中，对客户端是可见的，客户端的一些程序可能会窥探、复制以至修正Cookie中的内容。而Session存储在服务器上，对客户端是透明的，不存在敏感信息泄露的风险。
+ 假如选用Cookie，比较好的方法是，敏感的信息如账号密码等尽量不要写到Cookie中。最好是像Google、Baidu那样将Cookie信息加密，提交到服务器后再进行解密，保证Cookie中的信息只要本人能读得懂。而假如选择Session就省事多了，反正是放在服务器上，Session里任何隐私都能够有效的保护。
+
+4、有效期上的不同：
+只需要设置Cookie的过期时间属性为一个很大很大的数字，Cookie就可以在浏览器保存很长时间。
+由于Session依赖于名为JSESSIONID的Cookie，而Cookie JSESSIONID的过期时间默许为–1，只需关闭了浏览器（一次会话结束），该Session就会失效。
+
+5、对服务器造成的压力不同 ：
+Cookie保管在客户端，不占用服务器资源。假如并发阅读的用户十分多，Cookie是很好的选择。
+Session是保管在服务器端的，每个用户都会产生一个Session。假如并发访问的用户十分多，会产生十分多的Session，耗费大量的内存。
+
+6、 跨域支持上的不同 ：
+Cookie支持跨域名访问，例如将domain属性设置为“.baidu.com”，则以“.baidu.com”为后缀的一切域名均能够访问该Cookie。跨域名Cookie如今被普遍用在网络中。而Session则不会支持跨域名访问。Session仅在他所在的域名内有效。
+
+以上整理于：https://blog.csdn.net/guoweimelon/article/details/50886092
+
+四、localStorage
+webstorage是HTML5新出的标签，是本地存储的解决方案之一，有sessionStorage与localStorage两种。
+
+在HTML5中，新加入了一个localStorage特性，这个特性主要是用来作为本地存储来使用的，解决了cookie存储空间不足的问题(cookie中每条cookie的存储空间为4k)，localStorage中一般浏览器支持的是5M大小，这个在不同的浏览器中localStorage会有所不同。
+
+webstorage拥有封装好的方法，如setItem， getItem， removeItem，clear等。不像cookie那样需要程序猿手动封装。cookie的作用是与服务器进行交互，作为http规范的一部分存在为webstorage。而webstorage仅仅是为了在本地存储数据而生，它们都保存在客户端浏览器。
+
+cookie，localStorage， sessionStorage三者区别
+
+cookie始终在同源的http请求中携带，即使不需要，cookie在浏览器和服务器中来回传递。而localStorage和sessionStora仅仅在本地存储，不会好服务器通信，也不会自动把数据发送给服务器。
+存储大小不同，cookie为4kb左右；localStorage， sessionStorage可以达到5M
+数据有效期不同，sessionStorage仅在同源窗口中有效，关闭窗口就消失了，cookie可以设置过期时间，localStorage长期有效
+localStorage， sessionStorage有现成的API， cookie需要程序员手动封装（可借助js-cookie这种库类）
+————————————————
+版权声明：本文为CSDN博主「乌鲁托拉曼」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/lizhengxv/article/details/81541977

@@ -2,13 +2,14 @@
  * @Description: 正则表达式
  * @Refer: https://www.liaoxuefeng.com/wiki/1022910821149312/1023021582119488 RegEx入门
  * https://www.yuque.com/fe9/basic/xkdu76 描述具体规则
+ * https://juejin.im/post/5cdcd42551882568651554e6#heading-1 
  * @Author: owensiz 
  * @Date: 2019-10-14 14:52:56
  */
 // ----------------------👀ww principles
 RegExp以反斜杠\开头，以斜杠//包裹
 用\d可以匹配一个数字
-\w可以匹配一个字母或数字
+\w 包括下划线在内的单个字符，[A-Za-z0-9_]
 \s	匹配空白字符(空格、回车、制表符)
 用*表示任意个字符（包括0个）
 用+表示至少一个字符
@@ -23,6 +24,12 @@ $表示行的结束，\d$表示必须以数字结束
 最常用的是g，表示全局匹配
 指定i标志，表示忽略大小写
 m标志，表示执行多行匹配
+
+(x) 捕获性圆括号：匹配x，并捕获匹配项。
+(?:x) 非捕获性圆括号： 匹配x，但是不捕获匹配项。
+// https://blog.csdn.net/u013182438/article/details/81165456
+
+
 
 // ---------------------- 开始
 // 因为正则表达式也是用字符串表示的，所以，我们要首先了解如何用字符来描述字符。
@@ -172,3 +179,44 @@ re.exec(s); // null，直到结束仍没有匹配到
 // https://blog.csdn.net/dongjing0813/article/details/80461326
 
 
+// 稍微高级应用
+// 回溯引用（backreference）：
+// 模式的后面部分引用前面已经匹配到的子字符串
+// 用$1,$2...来引用要被替换的字符串。，
+var str = '123-123-123-abc'
+var re = /(12)3/g
+var result = str.replace(re, '$1*')
+// "12*-12*-12*-abc"
+
+
+
+// 前向查找
+// 前向查找(lookahead)是用来限制后缀的。
+// 凡是以(?=regex)包含的子表达式在匹配过程中都会用来限制前面的表达式的匹配。注意要加圆括号的
+var str = 'quick-quickly'
+var re = /quick(?=ly)/ 
+// 注意要加圆括号的。写成/quick?=ly/是不行的 
+re.exec(str)
+// ["quick", index: 6, input: "quick-quickly", groups: undefined]
+
+
+// 后向查找
+// 后向查找(lookbehind)。后向查找(lookbehind)是通过指定一个子表达式，然后从符合这个子表达式的位置出发开始查找符合规则的字串。
+// 限制前缀:(?<=regex)的语法
+// 比如'apple people'中只替换apple的ple为ply;/(?<=app)ple/
+var str = 'apple-people';
+var re = /(?<=ap)ple/
+var returnVal = str.replace(re, 'ply')
+// "apply-people"
+
+
+
+// 负后向查找
+// 与正前向查找不同的是，被指定的子表达式不能被匹配到
+// (?<!regex)
+var str = 'apple-bpple-cpple-people'
+// 要求只有people的ple不被匹配到
+var re = /(?<=!peo)ple/
+var returnVal = str.replace(re, '')
+// 从es2018之后，chrome中的正则表达式也支持反向查找了。但现在好像不支持的
+// "apple-bpple-cpple-people"
